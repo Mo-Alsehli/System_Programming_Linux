@@ -1,6 +1,6 @@
 # System Programming in Linux
 
-This repository is inspired by the course introduced by ([Reda Maher](https://www.linkedin.com/in/reda-maher/)) on Udemy. The notes and code examples in this repository are based on the content of the course.
+This repository is inspired by the course introduced by [Reda Maher](https://www.linkedin.com/in/reda-maher/) on Udemy. The notes and code examples in this repository are based on the content of the course.
 
 ## Course Information
 
