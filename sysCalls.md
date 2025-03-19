@@ -168,3 +168,292 @@ main:
    This provides a summary of system call usage, including counts and execution times.
 
 **NOTE: `echo $?` this command is used to output the value returned from the last operation and `$?` is a special variable holding this value.**
+
+### Explanation of System Call Handling in Linux
+
+> Quoted From LPI Book
+
+When a system call is invoked, the kernel handles it through a well-defined process. Here's a breakdown of the steps:
+
+1. **Saving Register Values**:
+
+   - The kernel saves the current state of the CPU registers onto the kernel stack to preserve the execution context of the user program.
+
+2. **Validating the System Call Number**:
+
+   - The kernel checks if the system call number provided by the user program is valid and corresponds to a supported system call.
+
+3. **Executing the System Call Service Routine**:
+
+   - The kernel uses the system call number to locate the appropriate service routine in the `sys_call_table`.
+   - If the service routine requires arguments, their validity is checked (e.g., ensuring memory addresses are within the user space).
+   - The service routine performs the requested operation, which may involve modifying user memory or transferring data between user and kernel memory.
+   - The routine returns a result or status code to the kernel.
+
+4. **Restoring Register Values**:
+
+   - The kernel restores the saved CPU register values from the kernel stack to resume the user program's execution context.
+
+5. **Returning to User Mode**:
+   - The kernel places the system call's return value on the stack and switches the processor back to user mode, returning control to the user program.
+
+This structured approach ensures that system calls are handled securely and efficiently, maintaining the stability and integrity of the operating system.
+
+## `open()` System Call:
+
+The `open()` system call is used to open a file in Linux. It returns a file descriptor, which is a non-negative integer used to identify the opened file in subsequent system calls.
+
+#### Syntax
+
+```c
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+int open(const char *pathname, int flags, mode_t mode);
+```
+
+#### Parameters
+
+1. **`pathname`**: The path to the file to be opened.
+2. **`flags`**: Specifies the access mode and other options. Common flags include:
+   - `O_RDONLY`: Open for read-only access.
+   - `O_WRONLY`: Open for write-only access.
+   - `O_RDWR`: Open for both reading and writing.
+   - `O_CREAT`: Create the file if it does not exist (requires `mode`).
+   - `O_TRUNC`: Truncate the file to zero length if it exists.
+   - `O_APPEND`: Append data to the end of the file.
+3. **`mode`**: Specifies the permissions to use if the file is created (used with `O_CREAT`). Common values include:
+   - `S_IRUSR`: Read permission for the owner.
+   - `S_IWUSR`: Write permission for the owner.
+   - `S_IRGRP`: Read permission for the group.
+   - `S_IROTH`: Read permission for others.
+
+#### Return Value
+
+- On success: Returns a file descriptor (non-negative integer).
+- On failure: Returns `-1` and sets `errno` to indicate the error.
+
+#### Example
+
+```c
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int main() {
+    int fd = open("example.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd == -1) {
+        perror("Error opening file");
+        return 1;
+    }
+    write(fd, "Hello, World!", 13);
+    close(fd);
+    return 0;
+}
+```
+
+#### Notes
+
+- Always check the return value of `open()` to handle errors.
+- Use `close()` to release the file descriptor when done.
+- The `mode` parameter is ignored if `O_CREAT` is not specified.
+- The `errno` variable can be used to determine the specific error if `open()` fails.
+
+#### Common Errors
+
+- `EACCES`: Permission denied.
+- `ENOENT`: File does not exist, and `O_CREAT` is not specified.
+- `EEXIST`: File exists, and `O_CREAT | O_EXCL` is specified.
+- `EMFILE`: Too many file descriptors are open in the process.
+
+The `open()` system call is fundamental for file I/O operations in Linux and is often used in conjunction with other system calls like `read()`, `write()`, and `close()`.
+
+## `read()` System Call
+
+The `read()` system call is used to read data from a file descriptor into a buffer.
+
+#### Syntax
+
+```c
+#include <unistd.h>
+
+ssize_t read(int fd, void *buf, size_t count);
+```
+
+#### Parameters
+
+1. **`fd`**: The file descriptor to read from, which is returned from the `open()` operation.
+2. **`buf`**: A pointer to the buffer where the read data will be stored.
+3. **`count`**: The maximum number of bytes to read.
+
+#### Return Value
+
+- On success: Returns the number of bytes actually read (can be less than `count`).
+- On failure: Returns `-1` and sets `errno` to indicate the error.
+- On end-of-file: Returns `0`.
+
+#### Example
+
+```c
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int main() {
+   char buffer[128];
+   int fd = open("example.txt", O_RDONLY);
+   if (fd == -1) {
+      perror("Error opening file");
+      return 1;
+   }
+   ssize_t bytesRead = read(fd, buffer, sizeof(buffer) - 1);
+   if (bytesRead == -1) {
+      perror("Error reading file");
+      close(fd);
+      return 1;
+   }
+   buffer[bytesRead] = '\0'; // Null-terminate the buffer
+   printf("Read %zd bytes: %s\n", bytesRead, buffer);
+   close(fd);
+   return 0;
+}
+```
+
+#### Notes
+
+- Always check the return value to handle errors or end-of-file conditions.
+- The buffer should be large enough to hold the data being read.
+- Use `close()` to release the file descriptor after reading.
+- Reading from a file descriptor associated with a terminal or pipe may return fewer bytes than requested.
+
+#### Common Errors
+
+- `EAGAIN`: The file descriptor is set to non-blocking, and no data is available.
+- `EBADF`: The file descriptor is not valid or not open for reading.
+- `EFAULT`: The buffer is outside the accessible address space.
+- `EINTR`: The call was interrupted by a signal before any data was read.
+
+The `read()` system call is a fundamental operation for reading data from files, pipes, sockets, and other file descriptors in Linux.
+
+## `write()` System Call
+
+The `write()` system call is used to write data from a buffer to a file descriptor.
+
+#### Syntax
+
+```c
+#include <unistd.h>
+
+ssize_t write(int fd, const void *buf, size_t count);
+```
+
+#### Parameters
+
+1. **`fd`**: The file descriptor to write to, typically obtained from `open()`.
+2. **`buf`**: A pointer to the buffer containing the data to be written.
+3. **`count`**: The number of bytes to write from the buffer.
+
+#### Return Value
+
+- On success: Returns the number of bytes actually written (can be less than `count`).
+- On failure: Returns `-1` and sets `errno` to indicate the error.
+
+#### Example
+
+```c
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int main() {
+   int fd = open("example.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+   if (fd == -1) {
+      perror("Error opening file");
+      return 1;
+   }
+   const char *text = "Hello, World!";
+   ssize_t bytesWritten = write(fd, text, 13);
+   if (bytesWritten == -1) {
+      perror("Error writing to file");
+      close(fd);
+      return 1;
+   }
+   printf("Wrote %zd bytes\n", bytesWritten);
+   close(fd);
+   return 0;
+}
+```
+
+#### Notes
+
+- Always check the return value to ensure all data was written.
+- Writing to a file descriptor associated with a terminal or pipe may write fewer bytes than requested.
+- Use `close()` to release the file descriptor after writing.
+- The `errno` variable can be used to determine the specific error if `write()` fails.
+
+#### Common Errors
+
+- `EAGAIN`: The file descriptor is set to non-blocking, and the operation would block.
+- `EBADF`: The file descriptor is not valid or not open for writing.
+- `EFAULT`: The buffer is outside the accessible address space.
+- `EFBIG`: The file size exceeds the maximum allowed.
+- `EINTR`: The call was interrupted by a signal before any data was written.
+
+The `write()` system call is essential for performing output operations in Linux, whether writing to files, sockets, or other file descriptors.
+
+## `close()` System Call
+
+The `close()` system call is used to close a file descriptor, releasing the resources associated with it.
+
+#### Syntax
+
+```c
+#include <unistd.h>
+
+int close(int fd);
+```
+
+#### Parameters
+
+- **`fd`**: The file descriptor to be closed, typically obtained from `open()` or other system calls.
+
+#### Return Value
+
+- On success: Returns `0`.
+- On failure: Returns `-1` and sets `errno` to indicate the error.
+
+#### Example
+
+```c
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int main() {
+   int fd = open("example.txt", O_RDONLY);
+   if (fd == -1) {
+      perror("Error opening file");
+      return 1;
+   }
+   // Perform operations with the file descriptor
+   if (close(fd) == -1) {
+      perror("Error closing file");
+      return 1;
+   }
+   return 0;
+}
+```
+
+#### Notes
+
+- Always close file descriptors when they are no longer needed to avoid resource leaks.
+- Closing a file descriptor makes it available for reuse by subsequent `open()` or other system calls.
+- Attempting to use a file descriptor after it has been closed results in an error (`EBADF`).
+
+#### Common Errors
+
+- `EBADF`: The file descriptor is not valid or was already closed.
+- `EINTR`: The call was interrupted by a signal before it could complete.
+
+The `close()` system call is essential for proper resource management in Linux, ensuring that file descriptors are not left open unnecessarily.
