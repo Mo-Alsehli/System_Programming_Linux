@@ -457,3 +457,131 @@ int main() {
 - `EINTR`: The call was interrupted by a signal before it could complete.
 
 The `close()` system call is essential for proper resource management in Linux, ensuring that file descriptors are not left open unnecessarily.
+
+# Command Line Arguments in Linux
+
+Command line arguments allow users to pass information to a program at runtime. In Linux, these arguments are accessible in a C program through the `main` function's parameters.
+
+### Syntax of `main` Function
+
+```c
+int main(int argc, char *argv[]);
+```
+
+#### Parameters:
+
+1. **`argc`**: The argument count, which indicates the number of arguments passed to the program, including the program's name.
+2. **`argv`**: The argument vector, which is an array of strings representing the arguments.
+
+### Example 1: Printing Command Line Arguments
+
+```c
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+   printf("Number of arguments: %d\n", argc);
+   for (int i = 0; i < argc; i++) {
+      printf("Argument %d: %s\n", i, argv[i]);
+   }
+   return 0;
+}
+```
+
+#### Explanation:
+
+- `argc` contains the number of arguments.
+- `argv` contains the arguments as strings, where `argv[0]` is the program's name.
+
+#### Usage:
+
+```bash
+./program arg1 arg2 arg3
+```
+
+#### Output:
+
+```
+Number of arguments: 4
+Argument 0: ./program
+Argument 1: arg1
+Argument 2: arg2
+Argument 3: arg3
+```
+
+### Example 2: Summing Numbers Passed as Arguments
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+   if (argc < 3) {
+      printf("Usage: %s num1 num2 ...\n", argv[0]);
+      return 1;
+   }
+
+   int sum = 0;
+   for (int i = 1; i < argc; i++) {
+      sum += atoi(argv[i]); // Convert argument to integer
+   }
+
+   printf("Sum: %d\n", sum);
+   return 0;
+}
+```
+
+#### Explanation:
+
+- The program expects at least two numbers as arguments.
+- `atoi` is used to convert strings to integers.
+
+#### Usage:
+
+```bash
+./program 10 20 30
+```
+
+#### Output:
+
+```
+Sum: 60
+```
+
+### Notes:
+
+- Always validate `argc` to ensure the required number of arguments are provided.
+- Use functions like `atoi` or `strtol` to convert string arguments to numeric types.
+- Command line arguments are a powerful way to make programs more flexible and user-friendly.
+
+## How the Shell and Kernel Handle Command Line Arguments
+
+When a program is executed in Linux, the shell and kernel work together to pass command line arguments to the program.
+Here's an explanation of the process:
+
+#### 1. **Shell's Role**
+
+- The shell parses the command line input provided by the user.
+- It splits the input into the program name and its arguments based on whitespace or quotes.
+- The shell then prepares an array of strings (`argv`) where:
+  - `argv[0]` contains the program's name.
+  - `argv[1]`, `argv[2]`, ..., `argv[argc-1]` contain the arguments.
+- The shell invokes the `exec()` family of system calls to load the program into memory and pass the arguments.
+
+#### 2. **Kernel's Role**
+
+- When the `exec()` system call is made, the kernel:
+  1.  Validates the program's executable file.
+  2.  Loads the program into memory.
+  3.  Sets up the stack with the `argc` (argument count) and `argv` (argument vector) values.
+  4.  Transfers control to the program's entry point (usually the `main` function in C programs).
+- The kernel ensures that the arguments are accessible to the program in a secure and structured manner.
+
+#### 3. **Accessing Arguments in the Program**
+
+- The program accesses the arguments through the `main` function's parameters:
+  ```c
+  int main(int argc, char *argv[]);
+  ```
+- `argc` and `argv` are populated by the kernel based on the values passed by the shell.
+
+This seamless interaction between the shell, kernel, and program ensures that command line arguments are handled efficiently and securely.
