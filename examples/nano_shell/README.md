@@ -58,6 +58,10 @@ Nano Shell is a simple command-line shell implementation written in C. It provid
 
 ## Video Demonstration:
 
+https://github.com/user-attachments/assets/c39c6371-aa0f-40e2-bd67-f3bf7062eee3
+
+https://github.com/user-attachments/assets/d4f66966-f298-41a9-8bd9-9082584601eb
+
 ## Implementation Details
 
 ### Key Components
