@@ -151,3 +151,88 @@ int main() {
 - If a parent process terminates without calling `wait()`, the child processes become orphaned and are adopted by the `init` process.
 - Use `WIFEXITED(status)` and `WEXITSTATUS(status)` macros to check if the child exited normally and to retrieve its exit status.
 - Use `WIFSIGNALED(status)` and `WTERMSIG(status)` macros to check if the child was terminated by a signal and to retrieve the signal number.
+
+## Orphan and Zombie Processes in Linux
+
+### Orphan Processes
+
+An orphan process is a process whose parent has terminated or exited before the child process. In Linux, when a parent process terminates, its orphaned child processes are automatically adopted by the `init` process (PID 1). The `init` process ensures that orphan processes are properly managed and eventually terminated when they complete execution.
+
+#### Key Points:
+
+- Orphan processes are not harmful as they are managed by the `init` process.
+- The `init` process periodically checks and cleans up orphan processes.
+- Orphan processes continue to execute normally until they finish their tasks.
+
+#### Example:
+
+If a parent process exits without waiting for its child:
+
+```c
+#include <unistd.h>
+#include <stdio.h>
+
+int main() {
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        perror("fork failed");
+        return 1;
+    } else if (pid == 0) {
+        printf("Child process. PID: %d, Parent PID: %d\n", getpid(), getppid());
+        sleep(5); // Simulate some work
+        printf("Child process after parent exits. New Parent PID: %d\n", getppid());
+    } else {
+        printf("Parent process exiting. PID: %d\n", getpid());
+    }
+
+    return 0;
+}
+```
+
+### Zombie Processes
+
+A zombie process is a process that has completed execution but still has an entry in the process table. This happens when the parent process has not yet read the termination status of the child process using `wait()` or a similar system call. Zombie processes do not consume system resources like CPU or memory, but they do occupy an entry in the process table, which is a limited resource.
+
+#### Key Points:
+
+- Zombie processes occur when the parent process does not clean up after its child.
+- They can be identified by the `Z` state in the output of the `ps` command.
+- Accumulation of zombie processes can exhaust the process table, leading to system issues.
+
+#### Example:
+
+If a parent process does not call `wait()`:
+
+```c
+#include <unistd.h>
+#include <stdio.h>
+
+int main() {
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        perror("fork failed");
+        return 1;
+    } else if (pid == 0) {
+        printf("Child process. PID: %d\n", getpid());
+        return 0; // Child exits
+    } else {
+        printf("Parent process. PID: %d\n", getpid());
+        sleep(10); // Parent does not call wait()
+    }
+
+    return 0;
+}
+```
+
+#### Preventing Zombie Processes:
+
+- Use `wait()` or `waitpid()` in the parent process to clean up child processes.
+- Use signal handlers like `SIGCHLD` to automatically reap child processes.
+
+### Summary:
+
+- Orphan processes are adopted by `init` and are not harmful.
+- Zombie processes can cause issues if not cleaned up, but they can be prevented by proper use of `wait()` or signal handling.
+- Proper process management is essential to maintain system stability.
