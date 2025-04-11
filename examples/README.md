@@ -16,10 +16,19 @@ examples/
 │   ├── syscall64.nasm
 │   └── sysCalls.c
 └── linux_utilities/
-    ├── copy.c
-    ├── echo.c
-    ├── move.c
-    └── pwd.c
+|    ├── copy.c
+|    ├── echo.c
+|    ├── move.c
+|    └── pwd.c
+├── femto_shell/
+│   └── femto_shell.c        # Simplest possible shell implementation
+├── pico_shell/
+│   └── pico_shell.c         # Basic shell with command execution
+├── nano_shell/
+│   └── nano_shell.c         # Shell with environment variable support
+├── micro_shell/
+│   └── micro_shell.c        # Full-featured shell with I/O redirection
+
 ```
 
 ## 1. cat_utility
@@ -209,3 +218,7 @@ This C program mimics the `pwd` command in Linux, which prints the current worki
    ./move <source-file> <destination-file>
    ./pwd
    ```
+
+### Shells Implementations
+
+**Navigate to shell folders for implementation and usage details.**
