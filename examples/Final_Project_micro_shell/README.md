@@ -90,6 +90,8 @@ gcc micro_shell.c -o micro_shell
 
 ### Video Demonestration
 
+https://github.com/user-attachments/assets/bfadc0bd-e652-43d7-a562-359ef9f52608
+
 ## Implementation Details
 
 ### Key Components
