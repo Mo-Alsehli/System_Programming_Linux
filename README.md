@@ -4,7 +4,8 @@ This repository is inspired by the course introduced by [Reda Maher](https://www
 ![VirtualBox_MM_Ubuntu24_04_03_2025_03_52_02](https://github.com/user-attachments/assets/71fadb18-d91b-44ea-9371-d4617d638a8b)
 
 ### Certificate Of Completion:
-[SPL_Certificate](https://www.udemy.com/certificate/UC-f6b0c625-f80d-4268-9416-f7fb9410d4cc/?utm_campaign=email&utm_medium=email&utm_source=sendgrid.com)
+![SPL_Certificate](https://github.com/user-attachments/assets/29f741ab-e07d-414b-a4f3-c76f63cb858a)
+
 ## Course Information
 
 - **Course Title:** System Programming in Linux
